@@ -13,11 +13,13 @@ const SininhoR = () => {
   useEffect(() => {
     const channel = pusher.subscribe('my-channel');
     channel.bind('my-event', (data) => {
+      console.log('Notificação recebida:', data);
       setNotificacoes((prevNotificacoes) => [
         ...prevNotificacoes,
         data.message,
       ]);
     });
+    
 
     return () => {
       channel.unbind_all();
