@@ -42,7 +42,7 @@ const SininhoR = () => {
     const channel = pusher.subscribe('my-channel');
     channel.bind('my-event', (data) => {
       const newNotification = {
-        id: Date.now().toString(),
+        id: data.id, // Usar o ID gerado pelo backend
         title: data.title || 'Sem título',
         message: data.message || 'Sem mensagem',
       };
@@ -59,28 +59,35 @@ const SininhoR = () => {
       });
     });
 
+
     return () => {
       channel.unbind_all();
       channel.unsubscribe();
     };
   }, []);
 
-  const handleDeleteNotification = async (id) => {
+  const excluirNotificacao = async (id) => {
     try {
-      await fetch(`http://10.0.2.2:5000/notifications/${id}`, {
+      const response = await fetch(`http://10.0.2.2:5000/notifications/${id}`, {
         method: 'DELETE',
       });
 
+      if (!response.ok) {
+        throw new Error(`Erro ao excluir a notificação: ${response.statusText}`);
+      }
+
+      console.log(`Notificação ${id} excluída.`);
       setNotificacoes((prev) => prev.filter((notificacao) => notificacao.id !== id));
     } catch (error) {
-      console.error('Erro ao excluir a notificação:', error);
+      console.error('Erro ao excluir notificação:', error);
     }
   };
+
 
   const renderRightActions = (id) => (
     <TouchableOpacity
       style={styles.deleteButton}
-      onPress={() => handleDeleteNotification(id)}
+      onPress={() => excluirNotificacao(id)}
     >
       <Text style={styles.deleteButtonText}>Apagar</Text>
     </TouchableOpacity>
@@ -90,10 +97,10 @@ const SininhoR = () => {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Ionicons name="arrow-back" size={24} onPress={() => {/* Função de navegação para voltar */}} />
+          <Ionicons name="arrow-back" size={24} onPress={() => {/* Função de navegação para voltar */ }} />
           <Text style={styles.title}>Notificações</Text>
         </View>
-        
+
         <FlatList
           data={notificacoes}
           renderItem={({ item }) => (
